@@ -46,7 +46,7 @@ public class DatabaseOperations {
         }
     }
 
-    //UC3 - Updating the salary
+    //UC4 - Updating the salary and sync it with database using JDBC Prepared Statement
     public void updateBasicPay(String name, double newBasicPay){
         try {
             Connection connection = this.getConnection();
