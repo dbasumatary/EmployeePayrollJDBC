@@ -3,6 +3,7 @@ import java.io.InputStreamReader;
 import java.sql.*;
 
 public class DatabaseOperations {
+    PayrollData payrollData = new PayrollData();
     public Connection getConnection() throws SQLException{
         String jdbcURL = "jdbc:mysql://localhost:3306/payroll_service?allowPublicKeyRetrieval=true&useSSL=false";
         String userName = "root";
@@ -49,6 +50,7 @@ public class DatabaseOperations {
     //UC4 - Updating the salary and sync it with database using JDBC Prepared Statement
     public void updateBasicPay(String name, double newBasicPay){
         try {
+            PayrollData payrollData = new PayrollData();
             Connection connection = this.getConnection();
 
             //The query updates the Basic_Pay column of the employee_payroll table for the employee with specified Name.
@@ -73,6 +75,42 @@ public class DatabaseOperations {
         }
     }
 
+    //UC5 - Retrieve employees in the given date range
+    public void getEmployeesByDateRange(Date startDate, Date endDate) {
+        try {
+            Connection con = this.getConnection();
+            String query = "SELECT * FROM employee_payroll WHERE Start BETWEEN ? AND ?";
+            PreparedStatement statement = con.prepareStatement(query);
+            statement.setDate(1, startDate);
+            statement.setDate(2, endDate);
+            ResultSet set = statement.executeQuery();
+            while (set.next()) {
+                int id = set.getInt("ID");
+                String name = set.getString("Name");
+                double basicPay = set.getDouble("Basic_Pay");
+                double deductions = set.getDouble("Deductions");
+                double taxablePay = set.getDouble("Taxable_Pay");
+                double incomeTax = set.getDouble("Income_Tax");
+                double netPay = set.getDouble("Net_Pay");
+                Date joinDate = set.getDate("Start");
+
+                System.out.println("ID : " + id);
+                System.out.println("Name : " + name);
+                System.out.println("Basic Pay : " + basicPay);
+                System.out.println("Deductions : " + deductions);
+                System.out.println("Taxable Pay : " + taxablePay);
+                System.out.println("Income Tax : " + incomeTax);
+                System.out.println("Net Pay : " + netPay);
+                System.out.println("Join Date : " + joinDate);
+                System.out.println("*****************************************");
+            }
+            statement.close();
+            con.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void main(String[] args) throws Exception{
         DatabaseOperations databaseOperations = new DatabaseOperations();
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
@@ -80,7 +118,7 @@ public class DatabaseOperations {
         while (flag != 0){
             System.out.println("*****************************************");
             System.out.println("Enter your choice:");
-            System.out.println("\n1. Display employee details\n2. Update basic pay\n3. Exit");
+            System.out.println("\n1. Display employee details\n2. Update basic pay\n3. Display employee in date range\n4. Exit");
             flag = Integer.parseInt(bufferedReader.readLine());
             switch (flag){
                 case 1: databaseOperations.displayDetails();
@@ -91,7 +129,13 @@ public class DatabaseOperations {
                         Double newPay = Double.parseDouble(bufferedReader.readLine());
                         databaseOperations.updateBasicPay(name,newPay);
                         break;
-                case 3: flag = 0;
+                case 3: System.out.print("Enter the start date in format YYYY-MM-DD : ");
+                        Date startDate = Date.valueOf(bufferedReader.readLine());
+                        System.out.print("Enter the end date in format YYYY-MM-DD : ");
+                        Date endDate = Date.valueOf(bufferedReader.readLine());
+                        databaseOperations.getEmployeesByDateRange(startDate,endDate);
+                        break;
+                case 4: flag = 0;
                         break;
             }
         }
