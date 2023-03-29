@@ -89,29 +89,17 @@ public class DatabaseOperations {
             statement.setDate(2, endDate);
             ResultSet set = statement.executeQuery();
             while (set.next()) {
-                int id = set.getInt("ID");
-                String name = set.getString("Name");
-                String gender = set.getString("Gender");
-                double basicPay = set.getDouble("Basic_Pay");
-                double deductions = set.getDouble("Deductions");
-                double taxablePay = set.getDouble("Taxable_Pay");
-                double incomeTax = set.getDouble("Income_Tax");
-                double netPay = set.getDouble("Net_Pay");
-                Date joinDate = set.getDate("Start");
-                String phone = set.getString("phone_number");
-                String address = set.getString("Address");
-
-                System.out.println("ID : " + id);
-                System.out.println("Name : " + name);
-                System.out.println("Gender : "+gender);
-                System.out.println("Basic Pay : " + basicPay);
-                System.out.println("Deductions : " + deductions);
-                System.out.println("Taxable Pay : " + taxablePay);
-                System.out.println("Income Tax : " + incomeTax);
-                System.out.println("Net Pay : " + netPay);
-                System.out.println("Join Date : " + joinDate);
-                System.out.println("Phone number : "+phone);
-                System.out.println("Address : "+address);
+                System.out.println("ID : " + set.getInt("ID"));
+                System.out.println("Name : " + set.getString("Name"));
+                System.out.println("Gender : "+set.getString("Gender"));
+                System.out.println("Basic Pay : " + set.getDouble("Basic_Pay"));
+                System.out.println("Deductions : " + set.getDouble("Deductions"));
+                System.out.println("Taxable Pay : " + set.getDouble("Taxable_Pay"));
+                System.out.println("Income Tax : " + set.getDouble("Income_Tax"));
+                System.out.println("Net Pay : " + set.getDouble("Net_Pay"));
+                System.out.println("Join Date : " + set.getDate("Start"));
+                System.out.println("Phone number : "+set.getString("phone_number"));
+                System.out.println("Address : "+set.getString("Address"));
                 System.out.println("*****************************************");
             }
             statement.close();
@@ -196,6 +184,43 @@ public class DatabaseOperations {
         System.out.println("The count of basic pay by gender " + gender + " is : " + count);
     }
 
+    //UC7 - Add new employee details
+    public void addEmployee(String name, String gender, double basicPay, Date start, String phone, String address) throws Exception {
+        try {
+            Connection con = this.getConnection();
+            String query = "INSERT INTO employeePayroll (ID, Name, Gender, Basic_Pay, Deductions, Taxable_Pay, Income_Tax, Net_Pay, Start, phone_number, Address) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+            PreparedStatement preparedStatement = con.prepareStatement(query);
+            double deduction = (basicPay * 0.2);
+            double taxablePay = basicPay - deduction;
+            double tax = (taxablePay * 0.1);
+            double netPay = (basicPay - tax);
+            preparedStatement.setInt(1,5);
+            preparedStatement.setString(2,name);
+            preparedStatement.setString(3,gender);
+            preparedStatement.setDouble(4,basicPay);
+            preparedStatement.setDouble(5,deduction);
+            preparedStatement.setDouble(6,taxablePay);
+            preparedStatement.setDouble(7,tax);
+            preparedStatement.setDouble(8,netPay);
+            preparedStatement.setDate(9,start);
+            preparedStatement.setString(10,phone);
+            preparedStatement.setString(11,address);
+
+            int rowsAffected = preparedStatement.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("New employee details added successfully.");
+            } else {
+                System.out.println("Failed to add new details.");
+            }
+            con.close();
+            preparedStatement.close();
+        }
+        catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
     public static void main(String[] args) throws Exception{
         DatabaseOperations databaseOperations = new DatabaseOperations();
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
@@ -203,7 +228,8 @@ public class DatabaseOperations {
         while (flag != 0){
             System.out.println("*****************************************");
             System.out.println("Enter your choice:");
-            System.out.println("\n1. Display employee details\n2. Update basic pay\n3. Display employee in date range\n4. Database Operations\n5. Exit");
+            System.out.println("\n1. Display employee details\n2. Update basic pay\n3. Display employee in date range\n4. Database Operations\n" +
+                                "5. Add new employee\n6. Exit");
             flag = Integer.parseInt(bufferedReader.readLine());
             switch (flag){
                 case 1: databaseOperations.displayDetails();
@@ -247,7 +273,21 @@ public class DatabaseOperations {
                             }
                         }
                         break;
-                case 5: flag = 0;
+                case 5: System.out.print("Enter the name: ");
+                        String nameEntry = bufferedReader.readLine();
+                        System.out.print("Enter the gender: ");
+                        String gender = bufferedReader.readLine();
+                        System.out.print("Enter the basic pay: ");
+                        Double basicPay = Double.parseDouble(bufferedReader.readLine());
+                        System.out.print("Enter the start date in format YYYY-MM-DD : ");
+                        Date dateStart = Date.valueOf(bufferedReader.readLine());
+                        System.out.print("Enter the phone number: ");
+                        String phone = bufferedReader.readLine();
+                        System.out.print("Enter the address: ");
+                        String address = bufferedReader.readLine();
+                        databaseOperations.addEmployee(nameEntry,gender,basicPay,dateStart,phone,address);
+                        break;
+                case 6: flag = 0;
                         break;
             }
         }
